@@ -1,33 +1,21 @@
-import argparse
 import io
 import optparse
 import sys
-import time
 
-"""
-TODO:-
-    - Support multiple files
-    - Allow for stdin input like cat ```test.txt | python3 ccwc.py```
-"""
 
 class CCWC:
-    def __init__(self, file_path: str) -> None:
-        self.file_path = file_path
+    def __init__(self) -> None:
         self.line_cnt = 0
         self.word_cnt = 0
         self.char_cnt = 0
         self.byte_cnt = 0
-        if self.file_path:
-            with open(self.file_path, "rb") as f:
-                self._count(f)
         
-    def _count(self,f: io.BufferedReader):
+    def generate_statistics(self,f: io.BufferedReader):
         for line in f.readlines():
             self.line_cnt += 1
             self.char_cnt += len(line.decode())
             self.word_cnt += len(line.split())
-            self.byte_cnt += len(line)
-                        
+            self.byte_cnt += len(line)                        
 
 if __name__ == "__main__":
         
@@ -35,33 +23,52 @@ if __name__ == "__main__":
         description="For counting words in a file"
     )
     
-    parser.add_option("-l", dest = "lines", help="Count number of lines" )
-    parser.add_option("-c", dest = "bytes", help="Count number of bytes")
-    parser.add_option("-m", dest = "characters", help="Count number of characters")
-    parser.add_option("-w", dest = "words", help="Count number of words")
+    parser.add_option("-l", 
+                      dest = "lines", 
+                      action = "store_true",
+                      help="Count number of lines", 
+                      default = False)
+    parser.add_option("-c", 
+                      dest = "bytes", 
+                      action = "store_true",
+                      help="Count number of bytes",
+                      default = False)
+    parser.add_option("-m",
+                      dest = "characters", 
+                      action = "store_true",
+                      help="Count number of characters",
+                      default = False)
+    parser.add_option("-w", 
+                      dest = "words", 
+                      action = "store_true",
+                      help="Count number of words",
+                      default = False)
     
     (options, args) = parser.parse_args()
     
-    if len(sys.argv) < 2:
-        print(sys.argv)
-        print("Need file name or path")
-        exit(1)
-       
-    file_path = sys.argv[-1]
-    ccwc = CCWC(file_path)
+    isFile = sys.stdin.isatty()
+    if not isFile:
+        contents = sys.stdin.buffer
+    else:
+        if len(sys.argv) < 2:
+            print(sys.argv)
+            print("Need file name or path")
+            exit(1)
+        file_path = sys.argv[-1]
+        contents = open(file_path,"rb")
+
+    ccwc = CCWC()
+    ccwc.generate_statistics(contents)
     
-    # print(options,args)
-    if len(sys.argv) == 2:
-        print(f"    {ccwc.line_cnt}    {ccwc.word_cnt}    {ccwc.byte_cnt}    {ccwc.file_path}")
+    LIMIT = 2 if isFile else 1
+    if len(sys.argv) <= LIMIT:
+        print(f"    {ccwc.line_cnt}    {ccwc.word_cnt}    {ccwc.byte_cnt}")
         exit(0)
     if options.lines:
-        print(ccwc.line_cnt, end=" ")
+        print(ccwc.line_cnt)
     if options.words:
-        print(ccwc.word_cnt, end=" ")
+        print(ccwc.word_cnt)
     if options.bytes:
-        print(ccwc.byte_cnt, end=" ")
+        print(ccwc.byte_cnt)
     if options.characters:
-        print(ccwc.char_cnt, end=" ")
-
-
-    print(file_path)
+        print(ccwc.char_cnt)
