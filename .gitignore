@@ -2,4 +2,4 @@
 *.log
 *.class
 *.jar
-
+*/.idea/*
