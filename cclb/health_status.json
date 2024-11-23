@@ -1,0 +1,5 @@
+{
+    "server1": true,
+    "server2": true,
+    "server3": false
+}
