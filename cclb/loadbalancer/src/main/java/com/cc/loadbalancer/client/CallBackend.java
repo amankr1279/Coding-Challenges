@@ -1,5 +1,7 @@
 package com.cc.loadbalancer.client;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -7,6 +9,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+@Slf4j
 public class CallBackend {
     private int serverNum = 1;
     private final String[] backendServerUrls = {"http://localhost:8081", "http://localhost:8082", "http://localhost:8083"};
@@ -34,13 +37,13 @@ public class CallBackend {
                     .timeout(Duration.ofSeconds(10))
                     .build();
 
-            System.out.println(httpRequest.toString());
+            log.debug(httpRequest.toString());
 
             HttpClient client = HttpClient.newBuilder().build();
 
             HttpResponse<String> httpResponse = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-            System.out.println(httpResponse.body());
+            log.debug(httpResponse.body());
             result = httpResponse.body();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

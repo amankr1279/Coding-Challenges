@@ -1,5 +1,6 @@
 package com.cc.loadbalancer.receiver;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +20,7 @@ import java.util.Map;
  * */
 
 @RestController
+@Slf4j
 public class LoadBalancerController {
 
     @Autowired
@@ -29,10 +31,10 @@ public class LoadBalancerController {
      */
     @GetMapping("/home")
     public String getBalancer(@RequestHeader @NotNull HttpHeaders httpHeaders) {
-        System.out.println("Get load balancer");
+        log.debug("Get load balancer");
         Map<String, String> headerMap = httpHeaders.toSingleValueMap();
         for (Map.Entry<String, String> entry: headerMap.entrySet()) {
-            System.out.println(entry.getKey() + ":\t" + entry.getValue());
+            log.debug(entry.getKey() + ":\t" + entry.getValue());
         }
 
         String backendResponse = loadBalancerService.makeHttpCallToBackend();
