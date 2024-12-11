@@ -1,5 +1,8 @@
 package com.cc.urlshortner;
 
+import com.cc.urlshortner.model.UrlData;
+import com.cc.urlshortner.repo.UrlDataRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -10,7 +13,8 @@ import java.util.*;
 @Service
 public class UrlShortenerService {
 
-    private final ArrayList<UrlData> mockDB = new ArrayList<>();
+    @Autowired
+    private UrlDataRepo urlDataRepo;
 
     public void removeUrl() {
 
@@ -32,25 +36,14 @@ public class UrlShortenerService {
             System.out.println("Hex hash : "+ hexHash);
             System.out.println("base64 hash : "+ base64Hash);
 
-            boolean alreadyExists = false;
-            for (UrlData data: mockDB) {
-                if(Objects.equals(data.getHash(), base64Hash)) {
-                   alreadyExists = true;
-                    System.out.println(data);
-                    shortUrl = data.getKey();
-                    System.out.println("Found in DB");
-                   break;
-                }
-            }
-
-            if(!alreadyExists) {
-               shortUrl = getRandomKey();
-
-                mockDB.add(new UrlData.UrlDataBuilder()
-                        .key(shortUrl)
-                        .hash(base64Hash)
-                        .longUrl(longUrl)
-                        .build());
+            Optional<UrlData> dataById = urlDataRepo.findById(base64Hash);
+            if(dataById.isPresent()){
+                shortUrl = dataById.get().getShortUrl();
+                System.out.println(dataById.get());
+                System.out.println("Found in DB");
+            } else{
+                shortUrl = getRandomKey();
+                urlDataRepo.save(new UrlData(shortUrl,longUrl, base64Hash));
             }
 
         } catch (NoSuchAlgorithmException e) {

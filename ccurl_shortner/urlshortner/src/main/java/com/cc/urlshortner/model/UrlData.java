@@ -1,17 +1,19 @@
-package com.cc.urlshortner;
+package com.cc.urlshortner.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UrlData {
-    private String key;
+    private String shortUrl;
     private String longUrl;
     @Id
     private String hash;
@@ -19,7 +21,7 @@ public class UrlData {
     @Override
     public String toString() {
         return "UrlData{" +
-                "key='" + key + '\'' +
+                "key='" + shortUrl + '\'' +
                 ", longUrl='" + longUrl + '\'' +
                 ", hash='" + hash + '\'' +
                 '}';
