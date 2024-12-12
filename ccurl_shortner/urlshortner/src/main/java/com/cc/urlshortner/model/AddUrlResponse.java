@@ -13,6 +13,7 @@ public class AddUrlResponse {
     private String longUrl;
     private String shortUrl;
     private String key;
+    private String message;
 
     @Override
     public String toString() {
@@ -20,7 +21,7 @@ public class AddUrlResponse {
                 "longUrl='" + longUrl + '\'' +
                 ", shortUrl='" + shortUrl + '\'' +
                 ", key='" + key + '\'' +
+                ", message='" + message + '\'' +
                 '}';
     }
-
 }
