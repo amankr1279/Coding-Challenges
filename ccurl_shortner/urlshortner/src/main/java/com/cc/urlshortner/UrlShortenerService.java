@@ -43,7 +43,15 @@ public class UrlShortenerService {
                 System.out.println("Found in DB");
             } else{
                 shortUrl = getRandomKey();
-                urlDataRepo.save(new UrlData(shortUrl,longUrl, base64Hash));
+                while(urlDataRepo.findByShortUrl(shortUrl).isPresent()){
+                    System.out.println("Regenerating key because " + shortUrl + " already present in DB");
+                    shortUrl = getRandomKey();
+                }
+                UrlData urlData = new UrlData();
+                urlData.setHash(base64Hash);
+                urlData.setShortUrl(shortUrl);
+                urlData.setLongUrl(longUrl);
+                urlDataRepo.save(urlData);
             }
 
         } catch (NoSuchAlgorithmException e) {
@@ -69,5 +77,15 @@ public class UrlShortenerService {
         }
         System.out.println("Generated random key: " + key);
         return key;
+    }
+
+    public String getLongUrl(String key) {
+        Optional<UrlData> byShortUrl = urlDataRepo.findByShortUrl(key);
+        if (byShortUrl.isPresent()){
+            String longUrl = byShortUrl.get().getLongUrl();
+            System.out.println("Found in DB : " + longUrl);
+            return longUrl;
+        }
+        return "";
     }
 }
