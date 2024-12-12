@@ -16,8 +16,14 @@ public class UrlShortenerService {
     @Autowired
     private UrlDataRepo urlDataRepo;
 
-    public void removeUrl() {
-
+    public void removeUrl(String key) {
+        Optional<UrlData> byShortUrl = urlDataRepo.findByShortUrl(key);
+        if(byShortUrl.isPresent()){
+            String hash = byShortUrl.get().getHash();
+            urlDataRepo.deleteById(hash);
+        } else {
+            throw new RuntimeException("Short Url does not exist");
+        }
     }
 
     public String shortenUrl(String longUrl) {

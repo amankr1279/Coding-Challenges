@@ -32,8 +32,17 @@ public class UrlShortenerController {
         }
     }
 
-    @DeleteMapping("/remove")
-    public void removeUrl() {
+    @DeleteMapping("/{key}")
+    public ResponseEntity<String> removeUrl(@PathVariable("key") String key) {
+        try {
+            shortenerService.removeUrl(key);
+            ResponseEntity<String> response = new ResponseEntity<>("Deleted\n", HttpStatus.OK);
+            return response;
+        } catch (Exception e) {
+            ResponseEntity<String> response = new ResponseEntity<>("Not found\n", HttpStatus.NOT_FOUND);
+
+            return response;
+        }
 
     }
 
