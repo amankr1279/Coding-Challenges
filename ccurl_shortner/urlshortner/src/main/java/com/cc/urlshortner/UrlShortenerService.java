@@ -2,6 +2,8 @@ package com.cc.urlshortner;
 
 import com.cc.urlshortner.model.UrlData;
 import com.cc.urlshortner.repo.UrlDataRepo;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +12,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+@Slf4j
 @Service
 public class UrlShortenerService {
 
@@ -22,11 +25,11 @@ public class UrlShortenerService {
             String hash = byShortUrl.get().getHash();
             urlDataRepo.deleteById(hash);
         } else {
-            throw new RuntimeException("Short Url does not exist");
+            throw new RuntimeException(key + " does not exist in DB");
         }
     }
 
-    public String shortenUrl(String longUrl) {
+    public String shortenUrl(@NotNull String longUrl) {
         String shortUrl = "";
         /**
          * SHA 256 hash the url
@@ -39,18 +42,18 @@ public class UrlShortenerService {
             byte[] encodedHash = digest.digest(longUrl.getBytes(StandardCharsets.UTF_8));
             String hexHash = HexFormat.of().formatHex(encodedHash);
             String base64Hash = Base64.getEncoder().encodeToString(encodedHash);
-            System.out.println("Hex hash : "+ hexHash);
-            System.out.println("base64 hash : "+ base64Hash);
+            log.info("Hex hash : "+ hexHash);
+            log.info("base64 hash : "+ base64Hash);
 
             Optional<UrlData> dataById = urlDataRepo.findById(base64Hash);
             if(dataById.isPresent()){
                 shortUrl = dataById.get().getShortUrl();
-                System.out.println(dataById.get());
-                System.out.println("Found in DB");
+                log.info(dataById.get().toString());
+                log.info("URL already in in DB");
             } else{
                 shortUrl = getRandomKey();
                 while(urlDataRepo.findByShortUrl(shortUrl).isPresent()){
-                    System.out.println("Regenerating key because " + shortUrl + " already present in DB");
+                    log.info("Regenerating key because " + shortUrl + " not in DB");
                     shortUrl = getRandomKey();
                 }
                 UrlData urlData = new UrlData();
@@ -81,7 +84,7 @@ public class UrlShortenerService {
                 key = key.concat(String.valueOf(randomNumber));
             }
         }
-        System.out.println("Generated random key: " + key);
+        log.info("Generated random key: " + key);
         return key;
     }
 
@@ -89,7 +92,7 @@ public class UrlShortenerService {
         Optional<UrlData> byShortUrl = urlDataRepo.findByShortUrl(key);
         if (byShortUrl.isPresent()){
             String longUrl = byShortUrl.get().getLongUrl();
-            System.out.println("Found in DB : " + longUrl);
+            log.info("Found in DB : " + longUrl);
             return longUrl;
         }
         return "";
