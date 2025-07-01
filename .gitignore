@@ -1,10 +1,22 @@
-.vscode/*
-*.log
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
 *.class
 *.jar
-*/.idea/*
-*.json
-*.txt
 *.DS_Store
 */node_modules
 *.pyc
+
+# Editor/IDE files
+.vscode/
+*/.idea/*
+
+# Environments
+*.env
+
+# Miscellaneous 
+*.txt
+*.log
+*.out
+*.json

@@ -1,4 +1,5 @@
 import os
+from logging import Logger
 
 class Shell_Imp:
     
@@ -6,12 +7,17 @@ class Shell_Imp:
         self.history = []
         self.prev_dir = os.getcwd()
         self.curr_dir = os.getcwd()
+        self.supported_cmds = ["ls", "cat", "pwd", "cd", "history", "help"]
+        
+    def set_context(self, logger : Logger):
+        self.logger = logger
     
     def list_dir(self, cmd : str):
         '''
         Lists all files and folders in given directory.
         Supports ls, ls -la and ls <flag or no flag> <directory>
         '''
+        self.history.append(cmd)
         args = cmd.split(" ")
         options = ["-l", "-la"]
         if len(args) == 1:
@@ -24,7 +30,7 @@ class Shell_Imp:
                 self._list_dir(target_resource)
         elif len(args) == 3:
             if args[1] not in options:
-                print("Incorrect way")
+                print(f"ERROR: The format is not correct for given cmd: {cmd}")
                 return
             self._list_dir(args[2], "a" in args[1], "l" in args[1])
         print()
@@ -36,6 +42,7 @@ class Shell_Imp:
         else:
             full_path = self.curr_dir + "/" + dir_path
         
+        self.logger.debug(full_path)
         separator = "  " if not pretty_flag else "\n"
         if os.path.exists(full_path):
             if os.path.isfile(full_path):
@@ -45,10 +52,24 @@ class Shell_Imp:
                     if (dot_file_flag and f.startswith(".")) or not f.startswith("."):
                         print(f, end=separator)
         else:
-            print("Incorrect way", end=separator)
+            print(f"ERROR: The file path is incorrect : {full_path}", end=separator)
 
     def cat_file(self, cmd : str):
-        pass
+        '''Displays the contents a file'''
+        self.history.append(cmd)
+        args = self._space_separated_name_handler(cmd)
+        self.logger.debug(f"Args : {args}")
+        if len(args) != 2:
+            print("ERROR: invalid number of args given")
+            return
+        
+        file_name = args[1]
+        if os.path.exists(file_name) and os.path.isfile(file_name):
+            with open(file_name, "r") as f:
+                for line in f:
+                    print(line.strip())
+        else:
+            print("ERROR: File path is invalid")
 
     def print_dir(self, cmd : str):
         '''Prints current directory path'''
@@ -57,17 +78,20 @@ class Shell_Imp:
         if len(args) == 1:
             out = self.curr_dir.replace("//", "/")
         elif len(args) == 2:
-            out = "Incorrect way for pwd"
+            out = f"ERROR: Incorrect cmd: {cmd} for pwd"
         print(out)
         self.history.append(cmd)
 
     def change_dir(self, cmd : str):
         '''
+        Changes directory.
         Does not handle cases like `cd ../ or cd ./`
         '''
+        self.history.append(cmd)
         options = set([".", "..", "-"])
         out = ""
-        args = cmd.split(" ")
+        args = self._space_separated_name_handler(cmd)
+        self.logger.debug(args)
         if len(args) == 1:
             out = "/Users/amankumar"
         elif len(args) == 2:
@@ -76,10 +100,14 @@ class Shell_Imp:
                 if cd_opt == ".":
                     out = self.curr_dir
                 elif cd_opt == "..":
-                    words = self.curr_dir.split("/")[:-1]
+                    words = list(filter(None, self.curr_dir.split("/")))
+                    words.pop()
+                    self.logger.debug(f"words : {words}")
                     out = "/"
                     for word in words:
-                        out = out + word + "/"
+                        if word:
+                            out = out + word + "/"
+                    out = out[:-1]
                 else:
                     out = self.prev_dir
             else:
@@ -87,16 +115,41 @@ class Shell_Imp:
                 if target_dir.startswith("/"):
                     out = target_dir
                 for dir in os.listdir(self.curr_dir):
+                    self.logger.debug(f"Dir : {dir}")
                     if dir == target_dir and os.path.isdir(self.curr_dir + "/" + dir):
                         out = self.curr_dir + "/" + target_dir
-        if out:
+                        
+        if out and os.path.exists(out):
+            self.logger.debug(f"Result : {out}")
             self.prev_dir = self.curr_dir
             self.curr_dir = out    
         else:
-            print("Incorrect way") 
-        self.history.append(cmd)  
+            self.logger.debug(f"ERROR: The command's format is invalid or file does not exist") 
+
+    def _space_separated_name_handler(self, cmd : str):
+        '''If the name of the file or directory contains 1 space separated name then it is handled here'''
+        args = cmd.split(" ")
+        self.logger.debug(f"Args before resolving: {args}")
+        for i, arg in enumerate(args):
+            if '"' in arg:
+                x = arg + " "
+                i += 1
+                while i < len(args):
+                    x = x + args[i] + " "
+                    if '"' in args[i]:
+                        break
+                    i += 1
+                args[1] = x.strip().replace('"', '')
+                self.logger.debug("After resolving, args[1] : " + args[1])
+                args = args[:2]
+                break
+        return args 
 
     def print_history(self):
         for i, cmd in enumerate(self.history):
             print(f"{i}  {cmd}")
     
+    def help(self):
+        '''Displays all supported commands in the shell'''
+        print(f"Supported Commands : {self.supported_cmds}.")
+        self.history.append("help")
