@@ -153,3 +153,7 @@ class Shell_Imp:
         '''Displays all supported commands in the shell'''
         print(f"Supported Commands : {self.supported_cmds}.")
         self.history.append("help")
+        
+    def sigint_handler(self, signum, frame ):
+        print("\npress (Enter) key to release")
+
